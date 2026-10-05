@@ -78,6 +78,14 @@ def full_disk_tx_ty(m_ref_height):
             r_sun_observed_arcs = m_ref_height.fits_header.get('RSUN_OBS')
             lower_Tx_Ty_lim = [-r_sun_observed_arcs * 1.3, -r_sun_observed_arcs * 1.3]
             Tx_Ty_range = r_sun_observed_arcs * 2.6
+        case 'KHPI':
+            r_sun_observed_arcs = m_ref_height.fits_header.get('RSUN_ARC')
+            lower_Tx_Ty_lim = [-r_sun_observed_arcs * 1.3, -r_sun_observed_arcs * 1.3]
+            Tx_Ty_range = r_sun_observed_arcs * 2.6
+        case 'NSO-GONG':
+            r_sun_observed_arcs = m_ref_height.fits_header.get('SOLAR-R')
+            lower_Tx_Ty_lim = [-r_sun_observed_arcs * 1.3, -r_sun_observed_arcs * 1.3]
+            Tx_Ty_range = r_sun_observed_arcs * 2.6
         case _:
             assert False, 'Instrument is not jet implemented in the SOLERwave_plotting_tool/full_disk_tx_ty function'
     return lower_Tx_Ty_lim[0],lower_Tx_Ty_lim[1], Tx_Ty_range
@@ -658,6 +666,7 @@ def plot_timeseries_of_lineplot_and_map(segment_nr,
                                         intensity_mean,
                                         intensity_var,
                                         time,
+                                        t_sunpy_sec,
                                         distance,
                                         linplot_ylim,
                                         wave_peak_kwargs,
@@ -850,9 +859,9 @@ def plot_timeseries_of_lineplot_and_map(segment_nr,
     #####################################################
     # Limits for the Map Plot
     #####################################################
-    if framing.lower == 'auto_framing':
+    if framing.lower() == 'auto_framing':
         auto_framing = True
-    elif framing.lower == 'full_disk':
+    elif framing.lower() == 'full_disk':
         auto_framing = False
         # Overwrite any giver values with the full disk ranges
         lower_Tx_lim,lower_Ty_lim, Tx_Ty_range = full_disk_tx_ty(m_ref_height)
@@ -1205,8 +1214,8 @@ def plot_timeseries_of_lineplot_and_map(segment_nr,
                      ','+str_direct_width,y = 1.04,size = font_size)
 
 
-
-        image_path = os.path.join(path_LVL_0_Results_0_Diagnostics_MI,'movie_frame_%3.3i'%(t)+'.jpg')
+        # Time range in frame index is up to 9999 second, so approximately 2.5 hours
+        image_path = os.path.join(path_LVL_0_Results_0_Diagnostics_MI,'movie_frame_%4.4i'%(t_sunpy_sec[t])+'.jpg')
         plt.savefig(image_path,dpi = 300)#,bbox_inches='tight') # The + 100 is to get no problem with missing leading zeros
 
 
@@ -1254,7 +1263,7 @@ def plot_timeseries_of_lineplot_and_map(segment_nr,
         if len(file_path_dict) != 0 and ((len(filename_appendix) != 0) or (len(save_path) != 0)):
             now = tm.strftime("%H:%M:%S", tm.localtime(tm.time()))
             print(now + ' plot_timeseries_of_lineplot_and_map : Warning: both a file_path_dict and a save_path and/or name appendix where given. '
-                        'Only the file_path_dict was used')  # TODO: might ues an actual waring package
+                        'Only the file_path_dict was used')
 
         if plot_peaks:
             movie_path = os.path.join(path_LVL_0_Results_0_Diagnostics,'movie_all_peaks'+overplot_info+ filename_appendix)
@@ -1498,7 +1507,7 @@ def plot_timeseries_of_map(segment_nr, theta_range, map_series, m_ref_height, in
         ax.set_ylim([ylim_low, ylim_high])
         #map_series[t].draw_limb(axes=ax)
         #ax.set_title(m_base.instrument + '  ' + m_base.wavelength.to_string()[:5] +' $\\text{\AA}$ '+ time [t],size=20)
-        ax.set_title(Telescope_Instrument_string(m_ref_height)+' ' + str(np.array(time[t],dtype='datetime64[s]')) + ' UT',size=font_size) # ' \\text{$\AA$} #Todo: Time has to be in seconds, no matter the standard
+        ax.set_title(Telescope_Instrument_string(m_ref_height)+' ' + str(np.array(time[t],dtype='datetime64[s]')) + ' UT',size=font_size) # ' \\text{$\AA$}
         plt.colorbar(ax = ax)
         ax.figure.axes[1].tick_params(axis="y", labelsize=font_size * 4/5)
 
@@ -1676,7 +1685,7 @@ def plot_timeseries_of_map(segment_nr, theta_range, map_series, m_ref_height, in
         if len(file_path_dict) != 0 and ((len(filename_appendix) != 0) or (len(save_path) != 0)):
             now = tm.strftime("%H:%M:%S", tm.localtime(tm.time()))
             print(now + ' plot_timeseries_of_lineplot_and_map : Warning: both a file_path_dict and a save_path and/or name appendix where given. '
-                        'Only the file_path_dict was used')  # TODO: might ues an actual waring package
+                        'Only the file_path_dict was used')
 
         if plot_peaks:
             movie_path = os.path.join(path_LVL_0_Results_0_Diagnostics,'movie_all_peaks_only_Map'+overplot_info+ filename_appendix)
@@ -2014,9 +2023,6 @@ def plot_fit_with_wave_features( time,
                 ax_height.set_xlim(time_dateobj[0] - np.timedelta64(2, 'm'),
                                    time_dateobj[-1] + np.timedelta64(2, 'm'))
 
-            #ax_d_peak.plot([time_dateobj[0],time_dateobj[-1]],[450,450],'--r') #Todo Delet, Limb distance for Analysis
-            #ax_d_front.plot([time_dateobj[0],time_dateobj[-1]], [450, 450], '--r') #Todo Delet, Limb distance for Analysis
-
             d_y_lim= [ax_d_peak.get_ylim()[0],ax_d_front.get_ylim()[1]]
 
             #ax_d_peak.set_title('Peak distance',x=-0.1,y=0.5) # rotation='vertical',x=-0.1,y=0.5
@@ -2039,7 +2045,7 @@ def plot_fit_with_wave_features( time,
             ax_height.set_ylabel('Peak Amplitude',size = label_size)
             ax_height.tick_params(axis='y', which='major', labelsize=label_size)
             ax_height.grid(Plot_Grid)
-            #ax_height.set_ylim([1,1.15])# [1,1.06]) # TODO: was[1,1.6] #Changed to auto
+            #ax_height.set_ylim([1,1.15])# [1,1.06])
             #ax_height.plot(time_dateobj,np.ones(len(time)),'--',color = 'red')
             #ax_height.locator_params(tight=True, nbins=8)
 
@@ -2049,7 +2055,7 @@ def plot_fit_with_wave_features( time,
             # https://matplotlib.org/stable/gallery/ticks/date_concise_formatter.html
             import matplotlib.dates as mdates
             from matplotlib.ticker import MultipleLocator, AutoMinorLocator
-            locator = mdates.AutoDateLocator(minticks=5, maxticks=12)#Todo: maxticks were 12
+            locator = mdates.AutoDateLocator(minticks=5, maxticks=12)
             formatter = mdates.ConciseDateFormatter(locator)
             ax_height.xaxis.set_major_locator(locator)
             ax_height.xaxis.set_major_formatter(formatter)
@@ -2077,7 +2083,7 @@ def plot_fit_with_wave_features( time,
     if len(file_path_dict) != 0 and ((len(filename_appendix) != 0) or (len(save_path) != 0)):
         now = tm.strftime("%H:%M:%S", tm.localtime(tm.time()))
         print(now + ' Feature Plot : Warning: both a file_path_dict and a save_path and/or name appendix where given. '
-                    'Only the file_path_dict was used') # TODO: might ues an actual waring package
+                    'Only the file_path_dict was used')
 
     if len(file_path_dict) != 0:
         if show_all_points:
