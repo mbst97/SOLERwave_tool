@@ -178,6 +178,10 @@ def create_preprocessed_input(path_LVL_0,fits_path,base_image_name,end_image_nam
 
         match Instrument_Name.lower():
             case 'gong': #'bigbear','cerrotololo','elteideo','learmonth','maunaloa','Udaipur'
+                # Gong Key Words
+                # https://docs.sunpy.org/en/latest/generated/api/sunpy.map.sources.GONGHalphaMap.html
+                # https://gong.nso.edu/data/HEADER_KEY.html
+
                 data, header = fits.getdata(file_paths[i+1], header=True)
                 # fix header
                 header['cunit1'] = 'arcsec'
@@ -228,7 +232,6 @@ def create_preprocessed_input(path_LVL_0,fits_path,base_image_name,end_image_nam
             case _:
                 m_temp= sunpy.map.Map(file_paths[i+1])
 
-        m_temp_exp_time = m_temp.exposure_time.to_value('s')
         # Checks if there is a minimum exposure time required
         if min_exposure_time is not None:
             # Check if the exposure time exceeds the minimum requirement value
