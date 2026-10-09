@@ -143,6 +143,12 @@ def create_preprocessed_input(path_LVL_0,fits_path,base_image_name,end_image_nam
         case _:
             m_reference = sunpy.map.Map(file_paths[0])
 
+    # ha2 and gong are already exposure time corrected
+    if Instrument_Name.lower() in ['gong','ha2']:
+        min_exposure_time = None
+        now = tm.strftime("%H:%M:%S", tm.localtime(tm.time()))
+        print(now + f' custom_sunpy_file_handler: '+ Instrument_Name.lower() +' is already exposure time corrected, min_exposure_time was set to NONE')
+
     # Checks if there is a minimum exposure time required
     # SDO/EUI DATA is downloaded as LV2 Data, which is already exposure time corrected
     if (min_exposure_time is not None) and (Instrument_Name.lower() is not 'eui'):
@@ -252,9 +258,9 @@ def create_preprocessed_input(path_LVL_0,fits_path,base_image_name,end_image_nam
 
             # Rotate north up
             #rotation_from_north = m_temp2.fits_header['CROTA2']
-            t1 = tm.time()
+            #t1 = tm.time()
             m_temp2 = m_temp2.rotate(order=3)
-            print(f'rotation time: {tm.time() - t1}')
+            #print(f'rotation time: {tm.time() - t1}')
             #########################################################
             # Base Ratio
             ########################################################
@@ -391,7 +397,6 @@ def search_new_event(path,start_time, end_time,Instrument_Name,Wavelength_,custo
         # Gong is the source, not the instrument. The tool will accept it as instrument name if the wavelength
         # corresponds to h_alpha
         if (Instrument_Name.lower() == 'gong'):
-            min_exposure_time = None
 
             res = Fido.search(a.Time(start_time, end_time), a.Wavelength(6562.8 * u.AA),a.Source('gong'))
 
@@ -425,42 +430,36 @@ def search_new_event(path,start_time, end_time,Instrument_Name,Wavelength_,custo
 
             # Gong individual Observatories:
         elif (Instrument_Name.lower() == 'bigbear') or (Instrument_Name.lower() == 'big bear'):
-            min_exposure_time = None
             res = Fido.search(a.Time(start_time, end_time), a.Instrument('Big bear'),a.Wavelength(6562.8 * u.AA))
             base_time = str(res[0, 0]['Start Time'].to_value('datetime64'))[:19]
             instrument_wavelength = 'GONG_H_alpha_BigBear'
             Instrument_Name = 'gong'
 
         elif (Instrument_Name.lower() == 'cerrotololo') or (Instrument_Name.lower() == 'cerro tololo'):
-            min_exposure_time = None
             res = Fido.search(a.Time(start_time, end_time), a.Instrument('Cerro Tololo'),a.Wavelength(6562.8 * u.AA))
             base_time = str(res[0, 0]['Start Time'].to_value('datetime64'))[:19]
             instrument_wavelength = 'GONG_H_alpha_CerroTololo'
             Instrument_Name = 'gong'
 
         elif (Instrument_Name.lower() == 'elteideo') or (Instrument_Name.lower() == 'el teide'):
-            min_exposure_time = None
             res = Fido.search(a.Time(start_time, end_time), a.Instrument('El Teide'), a.Wavelength(6562.8 * u.AA))
             base_time = str(res[0, 0]['Start Time'].to_value('datetime64'))[:19]
             instrument_wavelength = 'GONG_H_alpha_ElTeide'
             Instrument_Name = 'gong'
 
         elif (Instrument_Name.lower() == 'learmonth'):
-            min_exposure_time = None
             res = Fido.search(a.Time(start_time, end_time), a.Instrument('Learmonth'),a.Wavelength(6562.8 * u.AA))
             base_time = str(res[0, 0]['Start Time'].to_value('datetime64'))[:19]
             instrument_wavelength = 'GONG_H_alpha_Learmonth'
             Instrument_Name = 'gong'
 
         elif (Instrument_Name.lower() == 'maunaloa') or (Instrument_Name.lower() == 'mauna loa'):
-            min_exposure_time = None
             res = Fido.search(a.Time(start_time, end_time), a.Instrument('Mauna Loa'),a.Wavelength(6562.8 * u.AA))
             base_time = str(res[0, 0]['Start Time'].to_value('datetime64'))[:19]
             instrument_wavelength = 'GONG_H_alpha_MaunaLoa'
             Instrument_Name = 'gong'
 
         elif (Instrument_Name.lower() == 'udaipur'):
-            min_exposure_time = None
             res = Fido.search(a.Time(start_time, end_time), a.Instrument('Udaipur'),a.Wavelength(6562.8 * u.AA))
             base_time = str(res[0, 0]['Start Time'].to_value('datetime64'))[:19]
             instrument_wavelength = 'GONG_H_alpha_Udaipur'
@@ -468,7 +467,6 @@ def search_new_event(path,start_time, end_time,Instrument_Name,Wavelength_,custo
 
         # Kanzelhöhe H_alpha
         elif (Instrument_Name.lower() == 'ha2'):
-            min_exposure_time = None
             # For whatever reason, it is important to have a.Wavelength first, and a.Instrument second
             res = Fido.search(a.Time(start_time, end_time), a.Wavelength(6562.8 * u.AA), a.Instrument('HA2'))
             instrument_wavelength ='Kanzelhoehe_H_alpha'
